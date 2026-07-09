@@ -81,7 +81,7 @@ This document defines the OpenID Authentication Token: a proof-of-possession
 token that a Relying Party obtains by exchanging an OpenID Connect ID Token at
 an OpenID Provider's token endpoint using OAuth 2.0 Token Exchange (RFC 8693).
 The resulting OpenID Authentication Token preserves the authentication session
-state, the `nonce`, and the cryptographic key binding of the source ID Token,
+state and the cryptographic key binding of the source ID Token,
 while being explicitly scoped to one or more designated audiences and
 minimized to prevent the over-sharing of identity claims. It provides a
 standard mechanism for a Relying Party to convey a verifiable, audience-scoped
@@ -129,7 +129,7 @@ resulting OAT:
 * is signed by the OP using the same signing keys used for its ID Tokens, so
   it is verifiable exactly as an ID Token is;
 * preserves the authentication session state (`sid`), `auth_time`, `acr`,
-  `amr`, and the `nonce` of the source ID Token;
+  and `amr` of the source ID Token;
 * preserves the `cnf` key binding of the source ID Token, so that the
   Requesting Client can reuse a single proof-of-possession key when presenting
   the OAT to a recipient;
@@ -214,11 +214,6 @@ An OAT MUST contain the following claims:
 
 An OAT SHOULD contain the following claims when they are present in the Source
 ID Token, preserving the authentication session state:
-
-`nonce`
-: The `nonce` value from the Source ID Token. It reflects the original
-  authentication request and MUST NOT be used by a Target Relying Party as
-  replay protection for the presentation of the OAT itself.
 
 `sid`
 : The Session ID from the Source ID Token, tying the OAT to the OP session so
@@ -412,7 +407,7 @@ addition to its normal client authentication and token exchange processing:
 
 6. Determine the set of identity claims to include per {{claims-minimization}}.
 
-7. Mint the OAT, copying `iss`, `auth_time`, and (when present) `nonce`, `sid`,
+7. Mint the OAT, copying `iss`, `auth_time`, and (when present) `sid`,
    `acr`, and `amr` from the Source ID Token, setting `aud` to the requested
    audience(s), setting `cnf` to `{ "jkt": <thumbprint of the DPoP proof key> }`
    ({{key-binding}}), and signing it with the OP's signing key.
@@ -454,7 +449,6 @@ Requesting Client proved possession of on the exchange request.
   "exp": 1749825900,
   "iat": 1749825600,
   "auth_time": 1749820000,
-  "nonce": "n-0S6_WzA2Mj",
   "sid": "08a5019c-17e1-4977-8f42-65a12843ea02",
   "acr": "urn:mace:incommon:iap:silver",
   "amr": ["pwd", "otp"],
@@ -476,7 +470,7 @@ Party is not authorized to receive.
 
 To prevent over-sharing, an OP SHOULD default to releasing only the
 authentication and session claims defined in {{oat-claims}} (namely `iss`,
-`sub`, `aud`, `exp`, `iat`, `auth_time`, and, when present, `nonce`, `sid`,
+`sub`, `aud`, `exp`, `iat`, `auth_time`, and, when present, `sid`,
 `acr`, `amr`, and `cnf`), including additional identity claims only when they
 are both requested and permitted by policy. An OAT MUST NOT contain any claim
 that the OP's audience-specific policy does not permit for every audience named
@@ -608,15 +602,17 @@ is a concern, OPs SHOULD issue pairwise subject identifiers per
 naming multiple audiences with incompatible pairwise sectors is rejected rather
 than silently collapsing them to a shared identifier.
 
-## Nonce and Session State
+## Session State
 
-The `nonce` and `auth_time` in an OAT describe the original authentication
-event. The `nonce` MUST NOT be relied upon by a Target Relying Party as replay
-protection for the OAT presentation; the `jti`, `exp`, and proof-of-possession
-mechanisms serve that purpose. Preserving `sid` allows an OAT's validity to be
+The `auth_time` in an OAT describes the original authentication
+event. Preserving `sid` allows an OAT's validity to be
 tied to the OP session so that logout or session termination can be reflected;
 OPs and Target Relying Parties MAY integrate OAT lifecycle with existing
 session management and revocation mechanisms.
+
+The Source ID Token's `nonce` claim is not carried into the OAT. The `nonce`
+is a request-response correlator between the Requesting Client and the OP;
+no recipient of the OAT issued it or can validate it for its intended purpose.
 
 # IANA Considerations
 
