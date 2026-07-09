@@ -39,6 +39,7 @@ normative:
   RFC7517:
   RFC7519:
   RFC7638:
+  RFC7800:
   RFC8174:
   RFC8259:
   RFC8693:
@@ -204,10 +205,12 @@ An OAT MUST contain the following claims:
   of the original authentication event. It MUST NOT be updated by the exchange.
 
 `cnf`
-: REQUIRED when the Source ID Token contains a `cnf` claim. Its value MUST be
-  copied verbatim from the Source ID Token's `cnf` claim, thereby binding the
-  OAT to the same proof-of-possession key as the Source ID Token
-  ({{key-binding}}).
+: REQUIRED. A confirmation claim {{RFC7800}} binding the OAT to a
+  proof-of-possession key. It MUST contain a single `jkt` member whose value is
+  the base64url-encoded JWK SHA-256 Thumbprint {{RFC7638}} of the key that the
+  Requesting Client proved possession of, via a DPoP proof, on the token
+  exchange request. The provenance of that key depends on whether the Source ID
+  Token is itself key-bound (see {{key-binding}}).
 
 An OAT SHOULD contain the following claims when they are present in the Source
 ID Token, preserving the authentication session state:
@@ -268,17 +271,37 @@ error as described in {{errors}}.
 
 ## Key Binding {#key-binding}
 
-An OAT reuses the proof-of-possession key of the Source ID Token. When the
-Source ID Token is key-bound as defined in {{OpenID.KeyBinding}} and therefore
-contains a `cnf` claim, the OP MUST copy that `cnf` claim verbatim into the
-OAT.
+An OAT is always key-bound. The binding is established by a single, uniform
+mechanism: the Requesting Client presents a DPoP proof {{RFC9449}} on the token
+exchange request, and the OP sets the OAT's `cnf` claim to the JWK Thumbprint
+({{RFC7638}}, expressed as `jkt`) of the key demonstrated by that proof. The
+same key is later used by the Requesting Client to demonstrate proof of
+possession when it presents the OAT to a Target Relying Party
+({{consuming-an-oat}}).
 
-This design deliberately avoids introducing a new key for the OAT. The
-Requesting Client already holds the private key associated with the Source ID
-Token's `cnf` claim; by preserving the `cnf`, the Requesting Client can reuse
-that single key to demonstrate proof of possession when it presents the OAT to
-a Target Relying Party. This reduces the number of keys the Requesting Client
-must manage and keeps the trust model aligned with {{OpenID.KeyBinding}}: the
+The provenance of the binding key differs depending on whether the Source ID
+Token is itself key-bound, but the mechanism and the resulting `cnf` form do
+not:
+
+* **Key-bound Source ID Token.** When the Source ID Token is key-bound as
+  defined in {{OpenID.KeyBinding}} and therefore carries a `cnf` claim, the
+  DPoP proof key on the exchange MUST be the key bound by that `cnf` claim. The
+  OP MUST verify that the proof key's thumbprint matches the Source ID Token's
+  bound key before issuing the OAT. The Requesting Client thus reuses the single
+  key it already holds, minimizing key management, and the OP obtains proof that
+  the Requesting Client legitimately holds the Source ID Token's bound key.
+
+* **Bearer (non-key-bound) Source ID Token.** When the Source ID Token has no
+  `cnf` claim, the Requesting Client presents a DPoP proof using a key of its
+  own choosing (for example, a stable client key or a fresh per-share key). The
+  OP binds the OAT to that key. This lets a Requesting Client obtain a key-bound
+  OAT even from a bearer Source ID Token; the associated trust considerations
+  are described in {{security-considerations}}.
+
+In both cases the OP normalizes the OAT `cnf` to the `jkt` (thumbprint) form
+regardless of how the Source ID Token expressed its own `cnf`; the full public
+key is carried in the DPoP proof at presentation and need not be embedded in
+the OAT. This keeps the trust model aligned with {{OpenID.KeyBinding}}: the
 Requesting Client is the authenticating component that proves possession, and
 the Target Relying Party is the consuming component that requires such proof.
 
@@ -331,12 +354,13 @@ parameters:
   requesting specific claims to be included in the OAT. The OP remains
   authoritative over which claims are released.
 
-When the Source ID Token contains a `cnf` claim, the Requesting Client MUST
-demonstrate possession of the corresponding private key by including a DPoP
-proof JWT, as defined in {{Section 4 of RFC9449}}, in the `DPoP` header field
-of the token request. The OP MUST verify the DPoP proof as described in
-{{token-endpoint-processing}}. This prevents a stolen bearer ID Token from
-being exchanged for an OAT.
+The Requesting Client MUST include a DPoP proof JWT, as defined in {{Section 4
+of RFC9449}}, in the `DPoP` header field of the token request. The OAT is bound
+to the key demonstrated by this proof ({{key-binding}}). When the Source ID
+Token is key-bound, the proof MUST be made with the key bound by the Source ID
+Token's `cnf` claim; otherwise the Requesting Client MAY use a key of its own
+choosing. The OP MUST verify the DPoP proof as described in
+{{token-endpoint-processing}}.
 
 The following is a non-normative example of a token request (line breaks and
 indentation within the body are for display purposes only):
@@ -367,11 +391,12 @@ addition to its normal client authentication and token exchange processing:
    registration; the OP MUST confirm that the authenticated Requesting Client
    is authorized to exchange that ID Token.
 
-2. If the Source ID Token contains a `cnf` claim, verify the DPoP proof in the
-   `DPoP` header field per {{Section 5 of RFC9449}}, and confirm that the JWK
-   Thumbprint {{RFC7638}} of the proof's key matches the key bound by the
-   Source ID Token's `cnf` claim. If verification fails, the OP MUST reject the
-   request with an `invalid_dpop_proof` error.
+2. Verify the DPoP proof in the `DPoP` header field per {{Section 5 of
+   RFC9449}}. If the Source ID Token contains a `cnf` claim, additionally
+   confirm that the JWK Thumbprint {{RFC7638}} of the proof's key matches the
+   key bound by that `cnf` claim; if it does not, reject the request. If the
+   DPoP proof is missing or fails verification, the OP MUST reject the request
+   with an `invalid_dpop_proof` error.
 
 3. Determine, for each requested `audience` (and any `resource`), whether the
    Requesting Client is authorized to obtain an OAT for that Target Relying
@@ -385,8 +410,9 @@ addition to its normal client authentication and token exchange processing:
 5. Determine the set of identity claims to include per {{claims-minimization}}.
 
 6. Mint the OAT, copying `iss`, `auth_time`, and (when present) `nonce`, `sid`,
-   `acr`, `amr`, and `cnf` from the Source ID Token, setting `aud` to the
-   requested audience(s), and signing it with the OP's signing key.
+   `acr`, and `amr` from the Source ID Token, setting `aud` to the requested
+   audience(s), setting `cnf` to `{ "jkt": <thumbprint of the DPoP proof key> }`
+   ({{key-binding}}), and signing it with the OP's signing key.
 
 ## Token Response
 
@@ -414,8 +440,8 @@ Cache-Control: no-store
 ~~~
 
 The following is the non-normative, decoded payload of the OAT from the
-response above. The `cnf` claim has been copied verbatim from the Source ID
-Token.
+response above. The `cnf` claim carries the `jkt` thumbprint of the key the
+Requesting Client proved possession of on the exchange request.
 
 ~~~ json
 {
@@ -432,12 +458,7 @@ Token.
   "azp": "s6BhdRkqt3",
   "act": { "sub": "s6BhdRkqt3" },
   "cnf": {
-    "jwk": {
-      "kty": "EC",
-      "crv": "P-256",
-      "x": "l8tFrhx-34tV3hRICRDY9zCkDlpBhF42UQUfWVAWBFs",
-      "y": "9VE4jf_Ok_o64zbTTlcuNJajHmt6v9TDVrU0CdvGRDA"
-    }
+    "jkt": "0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I"
   }
 }
 ~~~
@@ -470,18 +491,19 @@ relies on the following:
   across all requested audiences (see {{subject-identifier}}).
 
 `invalid_dpop_proof`
-: As defined in {{Section 7 of RFC9449}}; returned when a required DPoP proof
-  is missing or does not match the Source ID Token's `cnf` claim.
+: As defined in {{Section 7 of RFC9449}}; returned when the required DPoP proof
+  is missing or fails verification, or when the Source ID Token is key-bound and
+  the proof key does not match the Source ID Token's `cnf` claim.
 
 # Consuming an OpenID Authentication Token {#consuming-an-oat}
 
 The mechanism by which the Requesting Client conveys the OAT to a Target
 Relying Party is out of scope of this document, mirroring
-{{OpenID.KeyBinding}}. Regardless of the transport, when the OAT contains a
-`cnf` claim it MUST be presented together with a proof of possession of the
-bound key; a DPoP proof {{RFC9449}} is RECOMMENDED for this purpose. The
-Requesting Client is the party that demonstrates this proof of possession,
-using the same private key associated with the Source ID Token's `cnf` claim.
+{{OpenID.KeyBinding}}. Regardless of the transport, the OAT MUST be presented
+together with a proof of possession of the key identified by its `cnf` claim; a
+DPoP proof {{RFC9449}} is RECOMMENDED for this purpose. The Requesting Client is
+the party that demonstrates this proof of possession, using the same key it
+proved possession of on the token exchange request ({{key-binding}}).
 
 A Target Relying Party consuming an OAT MUST:
 
@@ -495,10 +517,9 @@ A Target Relying Party consuming an OAT MUST:
 
 4. Verify the `exp` (and `nbf`, if present) claims.
 
-5. When a `cnf` claim is present, verify the accompanying proof of possession
-   and confirm that the proof's key matches the `cnf` claim. The Target Relying
-   Party MUST NOT trust an OAT bearing a `cnf` claim in the absence of such
-   proof.
+5. Verify the accompanying proof of possession and confirm that the JWK
+   Thumbprint of the proof's key equals the OAT's `cnf` `jkt` value. The Target
+   Relying Party MUST NOT trust an OAT in the absence of such proof.
 
 6. Not treat the OAT as an OAuth 2.0 access token, and not present it to any
    protected resource in place of an access token.
@@ -522,27 +543,38 @@ the `requested_token_type` parameter, and SHOULD indicate its support for
 token exchange and DPoP through the corresponding metadata parameters defined
 in {{RFC8693}} and {{RFC9449}}.
 
-# Security Considerations
+# Security Considerations {#security-considerations}
 
-## Reuse of the Key Binding
+## Key Binding of the OAT
 
-Preserving the Source ID Token's `cnf` claim means that the OAT is bound to a
-key held by the Requesting Client, not by the Target Relying Party. The
-Requesting Client therefore acts as the authenticating component that proves
-possession; the Target Relying Party relies on that proof rather than
-performing proof of possession itself. Deployments MUST ensure that the
-Requesting Client's private key is protected commensurate with the sensitivity
-of the authentication assertions it can mint OATs for. As recommended by
-{{OpenID.KeyBinding}}, a distinct key pair per Requesting Client instance
-SHOULD be used to avoid token confusion.
+The OAT is always bound, via its `cnf` claim, to a key held by the Requesting
+Client rather than by the Target Relying Party. The Requesting Client therefore
+acts as the authenticating component that proves possession; the Target Relying
+Party relies on that proof rather than performing proof of possession itself.
+Deployments MUST ensure that the Requesting Client's private key is protected
+commensurate with the sensitivity of the authentication assertions it can mint
+OATs for. As recommended by {{OpenID.KeyBinding}}, a distinct key pair per
+Requesting Client instance SHOULD be used to avoid token confusion; a
+Requesting Client MAY additionally use a fresh per-share key when binding an OAT
+from a bearer Source ID Token.
 
-## Preventing Exchange of Stolen ID Tokens
+## Bearer versus Key-Bound Source ID Tokens
 
-Requiring a DPoP proof over the token exchange request (when the Source ID
-Token is key-bound) ensures that only a party holding the bound private key can
-obtain an OAT. A bearer ID Token that is not key-bound offers no such
-protection; OPs SHOULD require key binding of Source ID Tokens for
-security-sensitive audiences.
+When the Source ID Token is key-bound, requiring the exchange DPoP proof to be
+made with the bound key ensures that only a party actually holding that key can
+obtain an OAT; a stolen bearer copy of a key-bound ID Token cannot be exchanged.
+
+When the Source ID Token is a bearer token, this protection is absent: the
+security of the exchange rests on the confidentiality of the Source ID Token
+together with the Requesting Client's authentication to the token endpoint.
+Because token exchange requires the Requesting Client to authenticate as an
+OAuth client, a stolen bearer Source ID Token alone -- without the client's
+credentials -- still cannot be exchanged for an OAT. Nonetheless, minting an OAT
+from a bearer Source ID Token is strictly weaker than from a key-bound one:
+whichever key the (authenticated) client presents becomes the OAT's bound key.
+OPs SHOULD prefer key-bound Source ID Tokens, SHOULD require them for
+security-sensitive audiences, and MAY refuse by policy to mint OATs from bearer
+Source ID Tokens.
 
 ## Audience Restriction and Token Confusion
 
