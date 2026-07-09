@@ -95,7 +95,8 @@ Table of Contents
    8.  IANA Considerations
      8.1.  Token Type Identifier
      8.2.  Media Type Registration
-     8.3.  OpenID Provider Metadata Registration
+     8.3.  OAuth Extensions Error Registration
+     8.4.  OpenID Provider Metadata Registration
    9.  References
      9.1.  Normative References
      9.2.  Informative References
@@ -408,25 +409,28 @@ Table of Contents
        exchange that ID Token.
 
    2.  Verify the DPoP proof in the DPoP header field per Section 5 of
-       [RFC9449].  If the Source ID Token contains a cnf claim,
-       additionally confirm that the JWK Thumbprint [RFC7638] of the
-       proof's key matches the key bound by that cnf claim; if it does
-       not, reject the request.  If the DPoP proof is missing or fails
+       [RFC9449].  If the DPoP proof is missing or fails this
        verification, the OP MUST reject the request with an
        invalid_dpop_proof error.
 
-   3.  Determine, for each requested audience (and any resource),
+   3.  If the Source ID Token contains a cnf claim, additionally confirm
+       that the JWK Thumbprint [RFC7638] of the proof's key equals the
+       thumbprint of the key bound by that cnf claim.  If the proof is
+       valid but its key does not match, the OP MUST reject the request
+       with an invalid_key_binding error (Section 4.5).
+
+   4.  Determine, for each requested audience (and any resource),
        whether the Requesting Client is authorized to obtain an OAT for
        that Target Relying Party.  If any requested audience is not
        permitted, the OP MUST return an invalid_target error.
 
-   4.  Determine the sub value per Section 3.2.  If a single sub value
+   5.  Determine the sub value per Section 3.2.  If a single sub value
        cannot satisfy all requested audiences, return an invalid_target
        error.
 
-   5.  Determine the set of identity claims to include per Section 4.4.
+   6.  Determine the set of identity claims to include per Section 4.4.
 
-   6.  Mint the OAT, copying iss, auth_time, and (when present) nonce,
+   7.  Mint the OAT, copying iss, auth_time, and (when present) nonce,
        sid, acr, and amr from the Source ID Token, setting aud to the
        requested audience(s), setting cnf to { "jkt": <thumbprint of the
        DPoP proof key> } (Section 3.3), and signing it with the OP's
@@ -509,9 +513,19 @@ Table of Contents
       Section 3.2).
 
    invalid_dpop_proof  As defined in Section 7 of [RFC9449]; returned
-      when the required DPoP proof is missing or fails verification, or
-      when the Source ID Token is key-bound and the proof key does not
-      match the Source ID Token's cnf claim.
+      when the required DPoP proof is missing or is not a valid DPoP
+      proof (for example, a malformed proof, an invalid signature, a
+      stale iat, or a replayed jti).  This code does not cover the case
+      in which a valid proof is made with the wrong key; see
+      invalid_key_binding.
+
+   invalid_key_binding  The DPoP proof is itself valid, but the Source
+      ID Token is key-bound and the JWK Thumbprint of the proof key does
+      not match the key bound by the Source ID Token's cnf claim
+      (Section 4.2).  This is a non-retryable condition: presenting the
+      same request with a freshly generated proof over the same key will
+      not succeed.  This code is registered by this document
+      (Section 8.3).
 
 5.  Consuming an OpenID Authentication Token
 
@@ -668,7 +682,23 @@ Table of Contents
 
    Change controller:  OpenID Foundation
 
-8.3.  OpenID Provider Metadata Registration
+8.3.  OAuth Extensions Error Registration
+
+   This document requests registration of the following error code in
+   the "OAuth Extensions Error Registry" established by [RFC6749].
+
+   Name:  invalid_key_binding
+
+   Usage Location:  token error response
+
+   Protocol Extension:  OpenID Authentication Token Protocol (this
+      document)
+
+   Change controller:  OpenID Foundation
+
+   Reference:  Section 4.5 of this document
+
+8.4.  OpenID Provider Metadata Registration
 
    This document requests registration of the metadata parameters
    authn_token_endpoint and authn_token_signing_alg_values_supported in
