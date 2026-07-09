@@ -9,8 +9,8 @@ number:
 date:
 consensus: true
 v: 3
-area: "Security"
-workgroup: "OpenID Connect"
+# area: "Security"
+# workgroup: "OpenID Connect"
 keyword:
  - OpenID Connect
  - OAuth 2.0
@@ -19,12 +19,12 @@ keyword:
  - key binding
  - authentication token
 venue:
-  group: "OpenID Connect Working Group"
-  type: "Working Group"
-  mail: "openid-specs-connect@lists.openid.net"
-  arch: "https://openid.net/wg/connect/"
-  github: "USER/REPO"
-  latest: "https://example.com/LATEST"
+#  group: "OpenID Connect Working Group"
+#  type: "Working Group"
+#  mail: "openid-specs-connect@lists.openid.net"
+#  arch: "https://openid.net/wg/connect/"
+  github: "gffletch/openid_authn_token"
+  latest: "https://gffletch.github.io/openid_authn_token/draft-openid-authn-token-protocol.html"
 
 author:
  -
