@@ -392,24 +392,27 @@ addition to its normal client authentication and token exchange processing:
    is authorized to exchange that ID Token.
 
 2. Verify the DPoP proof in the `DPoP` header field per {{Section 5 of
-   RFC9449}}. If the Source ID Token contains a `cnf` claim, additionally
-   confirm that the JWK Thumbprint {{RFC7638}} of the proof's key matches the
-   key bound by that `cnf` claim; if it does not, reject the request. If the
-   DPoP proof is missing or fails verification, the OP MUST reject the request
-   with an `invalid_dpop_proof` error.
+   RFC9449}}. If the DPoP proof is missing or fails this verification, the OP
+   MUST reject the request with an `invalid_dpop_proof` error.
 
-3. Determine, for each requested `audience` (and any `resource`), whether the
+3. If the Source ID Token contains a `cnf` claim, additionally confirm that the
+   JWK Thumbprint {{RFC7638}} of the proof's key equals the thumbprint of the
+   key bound by that `cnf` claim. If the proof is valid but its key does not
+   match, the OP MUST reject the request with an `invalid_key_binding` error
+   ({{errors}}).
+
+4. Determine, for each requested `audience` (and any `resource`), whether the
    Requesting Client is authorized to obtain an OAT for that Target Relying
    Party. If any requested audience is not permitted, the OP MUST return an
    `invalid_target` error.
 
-4. Determine the `sub` value per {{subject-identifier}}. If a single `sub`
+5. Determine the `sub` value per {{subject-identifier}}. If a single `sub`
    value cannot satisfy all requested audiences, return an `invalid_target`
    error.
 
-5. Determine the set of identity claims to include per {{claims-minimization}}.
+6. Determine the set of identity claims to include per {{claims-minimization}}.
 
-6. Mint the OAT, copying `iss`, `auth_time`, and (when present) `nonce`, `sid`,
+7. Mint the OAT, copying `iss`, `auth_time`, and (when present) `nonce`, `sid`,
    `acr`, and `amr` from the Source ID Token, setting `aud` to the requested
    audience(s), setting `cnf` to `{ "jkt": <thumbprint of the DPoP proof key> }`
    ({{key-binding}}), and signing it with the OP's signing key.
@@ -492,8 +495,18 @@ relies on the following:
 
 `invalid_dpop_proof`
 : As defined in {{Section 7 of RFC9449}}; returned when the required DPoP proof
-  is missing or fails verification, or when the Source ID Token is key-bound and
-  the proof key does not match the Source ID Token's `cnf` claim.
+  is missing or is not a valid DPoP proof (for example, a malformed proof, an
+  invalid signature, a stale `iat`, or a replayed `jti`). This code does not
+  cover the case in which a valid proof is made with the wrong key; see
+  `invalid_key_binding`.
+
+`invalid_key_binding`
+: The DPoP proof is itself valid, but the Source ID Token is key-bound and the
+  JWK Thumbprint of the proof key does not match the key bound by the Source ID
+  Token's `cnf` claim ({{token-endpoint-processing}}). This is a non-retryable
+  condition: presenting the same request with a freshly generated proof over
+  the same key will not succeed. This code is registered by this document
+  ({{iana-error}}).
 
 # Consuming an OpenID Authentication Token {#consuming-an-oat}
 
@@ -644,6 +657,26 @@ Security considerations:
 
 Change controller:
 : OpenID Foundation
+
+## OAuth Extensions Error Registration {#iana-error}
+
+This document requests registration of the following error code in the "OAuth
+Extensions Error Registry" established by {{RFC6749}}.
+
+Name:
+: invalid_key_binding
+
+Usage Location:
+: token error response
+
+Protocol Extension:
+: OpenID Authentication Token Protocol (this document)
+
+Change controller:
+: OpenID Foundation
+
+Reference:
+: {{errors}} of this document
 
 ## OpenID Provider Metadata Registration
 
