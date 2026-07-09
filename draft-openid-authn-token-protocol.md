@@ -4,7 +4,7 @@ abbrev: "OpenID Authentication Token"
 category: std
 
 docname: draft-openid-authn-token-protocol-latest
-submissiontype: independent
+submissiontype: info
 number:
 date:
 consensus: true
