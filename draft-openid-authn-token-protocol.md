@@ -327,7 +327,7 @@ parameters:
   contain (see {{claims-minimization}}).
 
 `claims`
-: OPTIONAL. A JSON object, as defined in {{Section 5.5 of OpenID.Core}},
+: OPTIONAL. A JSON object, as defined in Section 5.5 of {{OpenID.Core}},
   requesting specific claims to be included in the OAT. The OP remains
   authoritative over which claims are released.
 
@@ -361,7 +361,7 @@ grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange
 Upon receiving a token exchange request as defined above, the OP MUST, in
 addition to its normal client authentication and token exchange processing:
 
-1. Validate the Source ID Token per {{Section 3.1.3.7 of OpenID.Core}},
+1. Validate the Source ID Token per Section 3.1.3.7 of {{OpenID.Core}},
    including its signature, issuer, expiration, and integrity. The `aud` of the
    Source ID Token identifies the Requesting Client's original client
    registration; the OP MUST confirm that the authenticated Requesting Client
