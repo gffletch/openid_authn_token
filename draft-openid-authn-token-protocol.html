@@ -1070,7 +1070,7 @@ svg {
 <div id="internal-metadata" class="document-information">
 <dl id="identifiers">
 <dt class="label-workgroup">Workgroup:</dt>
-<dd class="workgroup">OpenID Connect</dd>
+<dd class="workgroup">Network Working Group</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
 <dd class="internet-draft">draft-openid-authn-token-protocol-latest</dd>
 <dt class="label-published">Published:</dt>
@@ -1110,14 +1110,10 @@ without reusing, and thereby over-disclosing, the original ID Token.<a href="#se
       </h2>
 <p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
 <p id="section-note.1-2">
-        The latest revision of this draft can be found at <span><a href="https://example.com/LATEST">https://example.com/LATEST</a></span>.
+        The latest revision of this draft can be found at <span><a href="https://gffletch.github.io/openid_authn_token/draft-openid-authn-token-protocol.html">https://gffletch.github.io/openid_authn_token/draft-openid-authn-token-protocol.html</a></span>.
         Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-openid-authn-token-protocol/">https://datatracker.ietf.org/doc/draft-openid-authn-token-protocol/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
-<p id="section-note.1-3">
-        Discussion of this document takes place on the
-        OpenID Connect Working Group Working Group mailing list (<span><a href="mailto:openid-specs-connect@lists.openid.net">mailto:openid-specs-connect@lists.openid.net</a></span>),
-        which is archived at <span><a href="https://openid.net/wg/connect/">https://openid.net/wg/connect/</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
-<p id="section-note.1-4">Source for this draft and an issue tracker can be found at
-        <span><a href="https://github.com/USER/REPO">https://github.com/USER/REPO</a></span>.<a href="#section-note.1-4" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/gffletch/openid_authn_token">https://github.com/gffletch/openid_authn_token</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
 </section>
 <div id="status-of-memo">
 <section id="section-boilerplate.1">
@@ -1217,10 +1213,10 @@ without reusing, and thereby over-disclosing, the original ID Token.<a href="#se
             <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
-                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-reuse-of-the-key-binding" class="internal xref">Reuse of the Key Binding</a></p>
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-key-binding-of-the-oat" class="internal xref">Key Binding of the OAT</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
-                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-preventing-exchange-of-stol" class="internal xref">Preventing Exchange of Stolen ID Tokens</a></p>
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-bearer-versus-key-bound-sou" class="internal xref">Bearer versus Key-Bound Source ID Tokens</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
                 <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-audience-restriction-and-to" class="internal xref">Audience Restriction and Token Confusion</a></p>
@@ -1432,10 +1428,12 @@ of the original authentication event. It <span class="bcp14">MUST NOT</span> be 
           <dd class="break"></dd>
 <dt id="section-3.1-2.13"><code>cnf</code></dt>
           <dd style="margin-left: 1.5em" id="section-3.1-2.14">
-            <p id="section-3.1-2.14.1"><span class="bcp14">REQUIRED</span> when the Source ID Token contains a <code>cnf</code> claim. Its value <span class="bcp14">MUST</span> be
-copied verbatim from the Source ID Token's <code>cnf</code> claim, thereby binding the
-OAT to the same proof-of-possession key as the Source ID Token
-(<a href="#key-binding" class="auto internal xref">Section 3.3</a>).<a href="#section-3.1-2.14.1" class="pilcrow">¶</a></p>
+            <p id="section-3.1-2.14.1"><span class="bcp14">REQUIRED</span>. A confirmation claim <span>[<a href="#RFC7800" class="cite xref">RFC7800</a>]</span> binding the OAT to a
+proof-of-possession key. It <span class="bcp14">MUST</span> contain a single <code>jkt</code> member whose value is
+the base64url-encoded JWK SHA-256 Thumbprint <span>[<a href="#RFC7638" class="cite xref">RFC7638</a>]</span> of the key that the
+Requesting Client proved possession of, via a DPoP proof, on the token
+exchange request. The provenance of that key depends on whether the Source ID
+Token is itself key-bound (see <a href="#key-binding" class="auto internal xref">Section 3.3</a>).<a href="#section-3.1-2.14.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -1522,21 +1520,44 @@ error as described in <a href="#errors" class="auto internal xref">Section 4.5</
         <h3 id="name-key-binding">
 <a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-key-binding" class="section-name selfRef">Key Binding</a>
         </h3>
-<p id="section-3.3-1">An OAT reuses the proof-of-possession key of the Source ID Token. When the
-Source ID Token is key-bound as defined in <span>[<a href="#OpenID.KeyBinding" class="cite xref">OpenID.KeyBinding</a>]</span> and therefore
-contains a <code>cnf</code> claim, the OP <span class="bcp14">MUST</span> copy that <code>cnf</code> claim verbatim into the
-OAT.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.3-2">This design deliberately avoids introducing a new key for the OAT. The
-Requesting Client already holds the private key associated with the Source ID
-Token's <code>cnf</code> claim; by preserving the <code>cnf</code>, the Requesting Client can reuse
-that single key to demonstrate proof of possession when it presents the OAT to
-a Target Relying Party. This reduces the number of keys the Requesting Client
-must manage and keeps the trust model aligned with <span>[<a href="#OpenID.KeyBinding" class="cite xref">OpenID.KeyBinding</a>]</span>: the
+<p id="section-3.3-1">An OAT is always key-bound. The binding is established by a single, uniform
+mechanism: the Requesting Client presents a DPoP proof <span>[<a href="#RFC9449" class="cite xref">RFC9449</a>]</span> on the token
+exchange request, and the OP sets the OAT's <code>cnf</code> claim to the JWK Thumbprint
+(<span>[<a href="#RFC7638" class="cite xref">RFC7638</a>]</span>, expressed as <code>jkt</code>) of the key demonstrated by that proof. The
+same key is later used by the Requesting Client to demonstrate proof of
+possession when it presents the OAT to a Target Relying Party
+(<a href="#consuming-an-oat" class="auto internal xref">Section 5</a>).<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3-2">The provenance of the binding key differs depending on whether the Source ID
+Token is itself key-bound, but the mechanism and the resulting <code>cnf</code> form do
+not:<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.3-3.1">
+            <p id="section-3.3-3.1.1"><strong>Key-bound Source ID Token.</strong> When the Source ID Token is key-bound as
+defined in <span>[<a href="#OpenID.KeyBinding" class="cite xref">OpenID.KeyBinding</a>]</span> and therefore carries a <code>cnf</code> claim, the
+DPoP proof key on the exchange <span class="bcp14">MUST</span> be the key bound by that <code>cnf</code> claim. The
+OP <span class="bcp14">MUST</span> verify that the proof key's thumbprint matches the Source ID Token's
+bound key before issuing the OAT. The Requesting Client thus reuses the single
+key it already holds, minimizing key management, and the OP obtains proof that
+the Requesting Client legitimately holds the Source ID Token's bound key.<a href="#section-3.3-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.3-3.2">
+            <p id="section-3.3-3.2.1"><strong>Bearer (non-key-bound) Source ID Token.</strong> When the Source ID Token has no
+<code>cnf</code> claim, the Requesting Client presents a DPoP proof using a key of its
+own choosing (for example, a stable client key or a fresh per-share key). The
+OP binds the OAT to that key. This lets a Requesting Client obtain a key-bound
+OAT even from a bearer Source ID Token; the associated trust considerations
+are described in <a href="#security-considerations" class="auto internal xref">Section 7</a>.<a href="#section-3.3-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-3.3-4">In both cases the OP normalizes the OAT <code>cnf</code> to the <code>jkt</code> (thumbprint) form
+regardless of how the Source ID Token expressed its own <code>cnf</code>; the full public
+key is carried in the DPoP proof at presentation and need not be embedded in
+the OAT. This keeps the trust model aligned with <span>[<a href="#OpenID.KeyBinding" class="cite xref">OpenID.KeyBinding</a>]</span>: the
 Requesting Client is the authenticating component that proves possession, and
-the Target Relying Party is the consuming component that requires such proof.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
-<p id="section-3.3-3">A Target Relying Party <span class="bcp14">MUST NOT</span> trust an OAT bearing a <code>cnf</code> claim without a
+the Target Relying Party is the consuming component that requires such proof.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
+<p id="section-3.3-5">A Target Relying Party <span class="bcp14">MUST NOT</span> trust an OAT bearing a <code>cnf</code> claim without a
 corresponding, successfully verified proof of possession (see
-<a href="#consuming-an-oat" class="auto internal xref">Section 5</a>).<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+<a href="#consuming-an-oat" class="auto internal xref">Section 5</a>).<a href="#section-3.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1608,12 +1629,12 @@ authoritative over which claims are released.<a href="#section-4.1-2.16.1" class
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-4.1-3">When the Source ID Token contains a <code>cnf</code> claim, the Requesting Client <span class="bcp14">MUST</span>
-demonstrate possession of the corresponding private key by including a DPoP
-proof JWT, as defined in <span><a href="https://rfc-editor.org/rfc/rfc9449#section-4" class="relref">Section 4</a> of [<a href="#RFC9449" class="cite xref">RFC9449</a>]</span>, in the <code>DPoP</code> header field
-of the token request. The OP <span class="bcp14">MUST</span> verify the DPoP proof as described in
-<a href="#token-endpoint-processing" class="auto internal xref">Section 4.2</a>. This prevents a stolen bearer ID Token from
-being exchanged for an OAT.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.1-3">The Requesting Client <span class="bcp14">MUST</span> include a DPoP proof JWT, as defined in <span><a href="https://rfc-editor.org/rfc/rfc9449#section-4" class="relref">Section 4</a> of [<a href="#RFC9449" class="cite xref">RFC9449</a>]</span>, in the <code>DPoP</code> header field of the token request. The OAT is bound
+to the key demonstrated by this proof (<a href="#key-binding" class="auto internal xref">Section 3.3</a>). When the Source ID
+Token is key-bound, the proof <span class="bcp14">MUST</span> be made with the key bound by the Source ID
+Token's <code>cnf</code> claim; otherwise the Requesting Client <span class="bcp14">MAY</span> use a key of its own
+choosing. The OP <span class="bcp14">MUST</span> verify the DPoP proof as described in
+<a href="#token-endpoint-processing" class="auto internal xref">Section 4.2</a>.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
 <p id="section-4.1-4">The following is a non-normative example of a token request (line breaks and
 indentation within the body are for display purposes only):<a href="#section-4.1-4" class="pilcrow">¶</a></p>
 <div class="lang-http sourcecode" id="section-4.1-5">
@@ -1650,11 +1671,11 @@ registration; the OP <span class="bcp14">MUST</span> confirm that the authentica
 is authorized to exchange that ID Token.<a href="#section-4.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-4.2-2.2">
-            <p id="section-4.2-2.2.1">If the Source ID Token contains a <code>cnf</code> claim, verify the DPoP proof in the
-<code>DPoP</code> header field per <span><a href="https://rfc-editor.org/rfc/rfc9449#section-5" class="relref">Section 5</a> of [<a href="#RFC9449" class="cite xref">RFC9449</a>]</span>, and confirm that the JWK
-Thumbprint <span>[<a href="#RFC7638" class="cite xref">RFC7638</a>]</span> of the proof's key matches the key bound by the
-Source ID Token's <code>cnf</code> claim. If verification fails, the OP <span class="bcp14">MUST</span> reject the
-request with an <code>invalid_dpop_proof</code> error.<a href="#section-4.2-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-4.2-2.2.1">Verify the DPoP proof in the <code>DPoP</code> header field per <span><a href="https://rfc-editor.org/rfc/rfc9449#section-5" class="relref">Section 5</a> of [<a href="#RFC9449" class="cite xref">RFC9449</a>]</span>. If the Source ID Token contains a <code>cnf</code> claim, additionally
+confirm that the JWK Thumbprint <span>[<a href="#RFC7638" class="cite xref">RFC7638</a>]</span> of the proof's key matches the
+key bound by that <code>cnf</code> claim; if it does not, reject the request. If the
+DPoP proof is missing or fails verification, the OP <span class="bcp14">MUST</span> reject the request
+with an <code>invalid_dpop_proof</code> error.<a href="#section-4.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-4.2-2.3">
             <p id="section-4.2-2.3.1">Determine, for each requested <code>audience</code> (and any <code>resource</code>), whether the
@@ -1672,8 +1693,9 @@ error.<a href="#section-4.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-4.2-2.6">
             <p id="section-4.2-2.6.1">Mint the OAT, copying <code>iss</code>, <code>auth_time</code>, and (when present) <code>nonce</code>, <code>sid</code>,
-<code>acr</code>, <code>amr</code>, and <code>cnf</code> from the Source ID Token, setting <code>aud</code> to the
-requested audience(s), and signing it with the OP's signing key.<a href="#section-4.2-2.6.1" class="pilcrow">¶</a></p>
+<code>acr</code>, and <code>amr</code> from the Source ID Token, setting <code>aud</code> to the requested
+audience(s), setting <code>cnf</code> to <code>{ "jkt": &lt;thumbprint of the DPoP proof key&gt; }</code>
+(<a href="#key-binding" class="auto internal xref">Section 3.3</a>), and signing it with the OP's signing key.<a href="#section-4.2-2.6.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 </section>
@@ -1704,8 +1726,8 @@ Cache-Control: no-store
 </pre><a href="#section-4.3-4" class="pilcrow">¶</a>
 </div>
 <p id="section-4.3-5">The following is the non-normative, decoded payload of the OAT from the
-response above. The <code>cnf</code> claim has been copied verbatim from the Source ID
-Token.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
+response above. The <code>cnf</code> claim carries the <code>jkt</code> thumbprint of the key the
+Requesting Client proved possession of on the exchange request.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-4.3-6">
 <pre>
 {
@@ -1722,12 +1744,7 @@ Token.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
   "azp": "s6BhdRkqt3",
   "act": { "sub": "s6BhdRkqt3" },
   "cnf": {
-    "jwk": {
-      "kty": "EC",
-      "crv": "P-256",
-      "x": "l8tFrhx-34tV3hRICRDY9zCkDlpBhF42UQUfWVAWBFs",
-      "y": "9VE4jf_Ok_o64zbTTlcuNJajHmt6v9TDVrU0CdvGRDA"
-    }
+    "jkt": "0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I"
   }
 }
 </pre><a href="#section-4.3-6" class="pilcrow">¶</a>
@@ -1770,8 +1787,9 @@ across all requested audiences (see <a href="#subject-identifier" class="auto in
           <dd class="break"></dd>
 <dt id="section-4.5-2.3"><code>invalid_dpop_proof</code></dt>
           <dd style="margin-left: 1.5em" id="section-4.5-2.4">
-            <p id="section-4.5-2.4.1">As defined in <span><a href="https://rfc-editor.org/rfc/rfc9449#section-7" class="relref">Section 7</a> of [<a href="#RFC9449" class="cite xref">RFC9449</a>]</span>; returned when a required DPoP proof
-is missing or does not match the Source ID Token's <code>cnf</code> claim.<a href="#section-4.5-2.4.1" class="pilcrow">¶</a></p>
+            <p id="section-4.5-2.4.1">As defined in <span><a href="https://rfc-editor.org/rfc/rfc9449#section-7" class="relref">Section 7</a> of [<a href="#RFC9449" class="cite xref">RFC9449</a>]</span>; returned when the required DPoP proof
+is missing or fails verification, or when the Source ID Token is key-bound and
+the proof key does not match the Source ID Token's <code>cnf</code> claim.<a href="#section-4.5-2.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -1786,11 +1804,11 @@ is missing or does not match the Source ID Token's <code>cnf</code> claim.<a hre
       </h2>
 <p id="section-5-1">The mechanism by which the Requesting Client conveys the OAT to a Target
 Relying Party is out of scope of this document, mirroring
-<span>[<a href="#OpenID.KeyBinding" class="cite xref">OpenID.KeyBinding</a>]</span>. Regardless of the transport, when the OAT contains a
-<code>cnf</code> claim it <span class="bcp14">MUST</span> be presented together with a proof of possession of the
-bound key; a DPoP proof <span>[<a href="#RFC9449" class="cite xref">RFC9449</a>]</span> is <span class="bcp14">RECOMMENDED</span> for this purpose. The
-Requesting Client is the party that demonstrates this proof of possession,
-using the same private key associated with the Source ID Token's <code>cnf</code> claim.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<span>[<a href="#OpenID.KeyBinding" class="cite xref">OpenID.KeyBinding</a>]</span>. Regardless of the transport, the OAT <span class="bcp14">MUST</span> be presented
+together with a proof of possession of the key identified by its <code>cnf</code> claim; a
+DPoP proof <span>[<a href="#RFC9449" class="cite xref">RFC9449</a>]</span> is <span class="bcp14">RECOMMENDED</span> for this purpose. The Requesting Client is
+the party that demonstrates this proof of possession, using the same key it
+proved possession of on the token exchange request (<a href="#key-binding" class="auto internal xref">Section 3.3</a>).<a href="#section-5-1" class="pilcrow">¶</a></p>
 <p id="section-5-2">A Target Relying Party consuming an OAT <span class="bcp14">MUST</span>:<a href="#section-5-2" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-5-3">
 <li id="section-5-3.1">
@@ -1808,10 +1826,9 @@ header <code>typ</code> is not <code>authn+jwt</code>.<a href="#section-5-3.1.1"
           <p id="section-5-3.4.1">Verify the <code>exp</code> (and <code>nbf</code>, if present) claims.<a href="#section-5-3.4.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-5-3.5">
-          <p id="section-5-3.5.1">When a <code>cnf</code> claim is present, verify the accompanying proof of possession
-and confirm that the proof's key matches the <code>cnf</code> claim. The Target Relying
-Party <span class="bcp14">MUST NOT</span> trust an OAT bearing a <code>cnf</code> claim in the absence of such
-proof.<a href="#section-5-3.5.1" class="pilcrow">¶</a></p>
+          <p id="section-5-3.5.1">Verify the accompanying proof of possession and confirm that the JWK
+Thumbprint of the proof's key equals the OAT's <code>cnf</code> <code>jkt</code> value. The Target
+Relying Party <span class="bcp14">MUST NOT</span> trust an OAT in the absence of such proof.<a href="#section-5-3.5.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-5-3.6">
           <p id="section-5-3.6.1">Not treat the OAT as an OAuth 2.0 access token, and not present it to any
@@ -1853,32 +1870,42 @@ in <span>[<a href="#RFC8693" class="cite xref">RFC8693</a>]</span> and <span>[<a
       <h2 id="name-security-considerations">
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<div id="reuse-of-the-key-binding">
+<div id="key-binding-of-the-oat">
 <section id="section-7.1">
-        <h3 id="name-reuse-of-the-key-binding">
-<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-reuse-of-the-key-binding" class="section-name selfRef">Reuse of the Key Binding</a>
+        <h3 id="name-key-binding-of-the-oat">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-key-binding-of-the-oat" class="section-name selfRef">Key Binding of the OAT</a>
         </h3>
-<p id="section-7.1-1">Preserving the Source ID Token's <code>cnf</code> claim means that the OAT is bound to a
-key held by the Requesting Client, not by the Target Relying Party. The
-Requesting Client therefore acts as the authenticating component that proves
-possession; the Target Relying Party relies on that proof rather than
-performing proof of possession itself. Deployments <span class="bcp14">MUST</span> ensure that the
-Requesting Client's private key is protected commensurate with the sensitivity
-of the authentication assertions it can mint OATs for. As recommended by
-<span>[<a href="#OpenID.KeyBinding" class="cite xref">OpenID.KeyBinding</a>]</span>, a distinct key pair per Requesting Client instance
-<span class="bcp14">SHOULD</span> be used to avoid token confusion.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-1">The OAT is always bound, via its <code>cnf</code> claim, to a key held by the Requesting
+Client rather than by the Target Relying Party. The Requesting Client therefore
+acts as the authenticating component that proves possession; the Target Relying
+Party relies on that proof rather than performing proof of possession itself.
+Deployments <span class="bcp14">MUST</span> ensure that the Requesting Client's private key is protected
+commensurate with the sensitivity of the authentication assertions it can mint
+OATs for. As recommended by <span>[<a href="#OpenID.KeyBinding" class="cite xref">OpenID.KeyBinding</a>]</span>, a distinct key pair per
+Requesting Client instance <span class="bcp14">SHOULD</span> be used to avoid token confusion; a
+Requesting Client <span class="bcp14">MAY</span> additionally use a fresh per-share key when binding an OAT
+from a bearer Source ID Token.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="preventing-exchange-of-stolen-id-tokens">
+<div id="bearer-versus-key-bound-source-id-tokens">
 <section id="section-7.2">
-        <h3 id="name-preventing-exchange-of-stol">
-<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-preventing-exchange-of-stol" class="section-name selfRef">Preventing Exchange of Stolen ID Tokens</a>
+        <h3 id="name-bearer-versus-key-bound-sou">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-bearer-versus-key-bound-sou" class="section-name selfRef">Bearer versus Key-Bound Source ID Tokens</a>
         </h3>
-<p id="section-7.2-1">Requiring a DPoP proof over the token exchange request (when the Source ID
-Token is key-bound) ensures that only a party holding the bound private key can
-obtain an OAT. A bearer ID Token that is not key-bound offers no such
-protection; OPs <span class="bcp14">SHOULD</span> require key binding of Source ID Tokens for
-security-sensitive audiences.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2-1">When the Source ID Token is key-bound, requiring the exchange DPoP proof to be
+made with the bound key ensures that only a party actually holding that key can
+obtain an OAT; a stolen bearer copy of a key-bound ID Token cannot be exchanged.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2-2">When the Source ID Token is a bearer token, this protection is absent: the
+security of the exchange rests on the confidentiality of the Source ID Token
+together with the Requesting Client's authentication to the token endpoint.
+Because token exchange requires the Requesting Client to authenticate as an
+OAuth client, a stolen bearer Source ID Token alone -- without the client's
+credentials -- still cannot be exchanged for an OAT. Nonetheless, minting an OAT
+from a bearer Source ID Token is strictly weaker than from a key-bound one:
+whichever key the (authenticated) client presents becomes the OAT's bound key.
+OPs <span class="bcp14">SHOULD</span> prefer key-bound Source ID Tokens, <span class="bcp14">SHOULD</span> require them for
+security-sensitive audiences, and <span class="bcp14">MAY</span> refuse by policy to mint OATs from bearer
+Source ID Tokens.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="audience-restriction-and-token-confusion">
@@ -2046,6 +2073,10 @@ Foundation as the change controller.<a href="#section-8.3-1" class="pilcrow">¶<
 <dt id="RFC7638">[RFC7638]</dt>
         <dd>
 <span class="refAuthor">Jones, M.</span> and <span class="refAuthor">N. Sakimura</span>, <span class="refTitle">"JSON Web Key (JWK) Thumbprint"</span>, <span class="seriesInfo">RFC 7638</span>, <span class="seriesInfo">DOI 10.17487/RFC7638</span>, <time datetime="2015-09" class="refDate">September 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7638">https://www.rfc-editor.org/rfc/rfc7638</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7800">[RFC7800]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Bradley, J.</span>, and <span class="refAuthor">H. Tschofenig</span>, <span class="refTitle">"Proof-of-Possession Key Semantics for JSON Web Tokens (JWTs)"</span>, <span class="seriesInfo">RFC 7800</span>, <span class="seriesInfo">DOI 10.17487/RFC7800</span>, <time datetime="2016-04" class="refDate">April 2016</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7800">https://www.rfc-editor.org/rfc/rfc7800</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
         <dd>
