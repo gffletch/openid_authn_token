@@ -22,3 +22,5 @@ draft-openid-authn-token-protocol.xml
 package-lock.json
 report.xml
 !requirements.txt
+CLAUDE.md
+PROJECT_MEMORY.md
