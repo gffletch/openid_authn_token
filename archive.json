@@ -1,0 +1,81 @@
+{
+  "magic": "E!vIA5L86J2I",
+  "timestamp": "2026-07-12T01:19:42.827033+00:00",
+  "repo": "gffletch/openid_authn_token",
+  "labels": [
+    {
+      "name": "bug",
+      "description": "Something isn't working",
+      "color": "d73a4a"
+    },
+    {
+      "name": "documentation",
+      "description": "Improvements or additions to documentation",
+      "color": "0075ca"
+    },
+    {
+      "name": "duplicate",
+      "description": "This issue or pull request already exists",
+      "color": "cfd3d7"
+    },
+    {
+      "name": "enhancement",
+      "description": "New feature or request",
+      "color": "a2eeef"
+    },
+    {
+      "name": "good first issue",
+      "description": "Good for newcomers",
+      "color": "7057ff"
+    },
+    {
+      "name": "help wanted",
+      "description": "Extra attention is needed",
+      "color": "008672"
+    },
+    {
+      "name": "invalid",
+      "description": "This doesn't seem right",
+      "color": "e4e669"
+    },
+    {
+      "name": "question",
+      "description": "Further information is requested",
+      "color": "d876e3"
+    },
+    {
+      "name": "wontfix",
+      "description": "This will not be worked on",
+      "color": "ffffff"
+    }
+  ],
+  "issues": [],
+  "pulls": [
+    {
+      "number": 1,
+      "id": "PR_kwDOTTrAgM7v9udx",
+      "title": "Remove nonce claim from OAT",
+      "url": "https://github.com/gffletch/openid_authn_token/pull/1",
+      "state": "OPEN",
+      "author": "josephdecock",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "I'm not sure why the OAT carries the Source ID Token's `nonce` claim. The `nonce` is a request-response correlator between the Requesting Client and the OP. Is there a use case where a Target RP would need it?\r\n\r\nThis PR removes `nonce` from the OAT claims and adds a brief note in Security Considerations as a way to surface the question. My thinking is that session correlation and replay detection are already covered by `sid`, `jti`, `exp`, and proof-of-possession, but I may be missing something.",
+      "createdAt": "2026-07-10T00:38:31Z",
+      "updatedAt": "2026-07-10T00:50:50Z",
+      "baseRepository": "gffletch/openid_authn_token",
+      "baseRefName": "main",
+      "baseRefOid": "3fdb6064673e0ccb8ec22d3d2125488db389e2b3",
+      "headRepository": "josephdecock/openid_authn_token",
+      "headRefName": "remove-nonce-from-oat",
+      "headRefOid": "4e00930383a2621feabacf2f8f85faacbccc5bb8",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    }
+  ]
+}
