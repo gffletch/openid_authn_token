@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-07-21T01:18:14.364816+00:00",
+  "timestamp": "2026-07-23T01:23:46.807691+00:00",
   "repo": "gffletch/openid_authn_token",
   "labels": [
     {
@@ -56,26 +56,50 @@
       "id": "PR_kwDOTTrAgM7v9udx",
       "title": "Remove nonce claim from OAT",
       "url": "https://github.com/gffletch/openid_authn_token/pull/1",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "josephdecock",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "I'm not sure why the OAT carries the Source ID Token's `nonce` claim. The `nonce` is a request-response correlator between the Requesting Client and the OP. Is there a use case where a Target RP would need it?\r\n\r\nThis PR removes `nonce` from the OAT claims and adds a brief note in Security Considerations as a way to surface the question. My thinking is that session correlation and replay detection are already covered by `sid`, `jti`, `exp`, and proof-of-possession, but I may be missing something.",
       "createdAt": "2026-07-10T00:38:31Z",
-      "updatedAt": "2026-07-10T00:50:50Z",
+      "updatedAt": "2026-07-21T15:36:45Z",
       "baseRepository": "gffletch/openid_authn_token",
       "baseRefName": "main",
       "baseRefOid": "3fdb6064673e0ccb8ec22d3d2125488db389e2b3",
       "headRepository": "josephdecock/openid_authn_token",
       "headRefName": "remove-nonce-from-oat",
       "headRefOid": "4e00930383a2621feabacf2f8f85faacbccc5bb8",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
-      "comments": [],
-      "reviews": []
+      "closedAt": "2026-07-21T15:36:45Z",
+      "mergedAt": "2026-07-21T15:36:45Z",
+      "mergedBy": "gffletch",
+      "mergeCommit": {
+        "oid": "42276f44e5182231d0437feec4068dcb7a02121a"
+      },
+      "comments": [
+        {
+          "author": "gffletch",
+          "authorAssociation": "OWNER",
+          "body": "Thanks. This may have been a carry over from the way OpenID Key Binding is managing security. It is worth thinking through how the binding to session works. I\u2019ll go ahead and merge.",
+          "createdAt": "2026-07-21T15:34:41Z",
+          "updatedAt": "2026-07-21T15:34:41Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOTTrAgM8AAAABGucj6g",
+          "commit": {
+            "abbreviatedOid": "4e00930"
+          },
+          "author": "gffletch",
+          "authorAssociation": "OWNER",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-21T15:36:30Z",
+          "updatedAt": "2026-07-21T15:36:30Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
