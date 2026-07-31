@@ -1,85 +1,32 @@
----
-title: "OpenID Authentication Token Protocol"
-abbrev: "OpenID Authentication Token"
-category: std
+%%%
+title = "OpenID Authentication Token Protocol 1.0 - draft 00"
+abbrev = "OpenID Authentication Token"
+ipr = "none"
+workgroup = "OpenID Connect Working Group"
+keyword = ["OpenID Connect", "OAuth 2.0", "token exchange", "proof of possession", "key binding", "authentication token"]
+consensus = true
 
-docname: draft-openid-authn-token-protocol-latest
-submissiontype: IETF
-number:
-date:
-consensus: true
-v: 3
-# area: "Security"
-# workgroup: "OpenID Connect"
-keyword:
- - OpenID Connect
- - OAuth 2.0
- - token exchange
- - proof of possession
- - key binding
- - authentication token
-venue:
-#  group: "OpenID Connect Working Group"
-#  type: "Working Group"
-#  mail: "openid-specs-connect@lists.openid.net"
-#  arch: "https://openid.net/wg/connect/"
-  github: "gffletch/openid_authn_token"
-  latest: "https://gffletch.github.io/openid_authn_token/draft-openid-authn-token-protocol.html"
+[seriesInfo]
+name = "Internet-Draft"
+value = "openid-authn-token-1_0"
+stream = "IETF"
+status = "standard"
 
-author:
- -
-    fullname: George F Fletcher
-    organization: Practical Identity LLC
-    email: george@practicalidentity.com
+[[author]]
+initials = "G."
+surname = "Fletcher"
+fullname = "George Fletcher"
+organization = "Practical Identity LLC"
+[author.address]
+email = "george@practicalidentity.com"
 
-normative:
-  RFC2119:
-  RFC6749:
-  RFC7515:
-  RFC7517:
-  RFC7519:
-  RFC7638:
-  RFC7800:
-  RFC8174:
-  RFC8259:
-  RFC8693:
-  RFC9449:
-  OpenID.Core:
-    title: "OpenID Connect Core 1.0 incorporating errata set 2"
-    target: "https://openid.net/specs/openid-connect-core-1_0.html"
-    date: 2023-12-15
-    author:
-      - ins: N. Sakimura
-      - ins: J. Bradley
-      - ins: M. Jones
-      - ins: B. de Medeiros
-      - ins: C. Mortimore
-  OpenID.KeyBinding:
-    title: "OpenID Connect Key Binding"
-    target: "https://openid.github.io/connect-key-binding/main.html"
-    author:
-      - ins: OpenID Connect Working Group
+%%%
 
-informative:
-  RFC6750:
-  RFC8414:
-  OpenID.Discovery:
-    title: "OpenID Connect Discovery 1.0 incorporating errata set 2"
-    target: "https://openid.net/specs/openid-connect-discovery-1_0.html"
-    date: 2023-12-15
-    author:
-      - ins: N. Sakimura
-      - ins: J. Bradley
-      - ins: M. Jones
-      - ins: E. Jay
-
-...
-
---- abstract
+.# Abstract
 
 This document defines the OpenID Authentication Token: a proof-of-possession
 token that a Relying Party obtains by exchanging an OpenID Connect ID Token at
-an OpenID Provider's token endpoint using OAuth 2.0 Token Exchange (RFC 8693).
+an OpenID Provider's token endpoint using OAuth 2.0 Token Exchange [@!RFC8693].
 The resulting OpenID Authentication Token preserves the authentication session
 state and the cryptographic key binding of the source ID Token,
 while being explicitly scoped to one or more designated audiences and
@@ -88,12 +35,12 @@ standard mechanism for a Relying Party to convey a verifiable, audience-scoped
 assertion of an end-user's authentication event to another Relying Party
 without reusing, and thereby over-disclosing, the original ID Token.
 
---- middle
+{mainmatter}
 
 # Introduction
 
-OpenID Connect {{OpenID.Core}} defines the ID Token, a JSON Web Token (JWT)
-{{RFC7519}} that a Relying Party (RP) receives at the end of an authentication
+OpenID Connect [@!OpenID.Core] defines the ID Token, a JSON Web Token (JWT)
+[@!RFC7519] that a Relying Party (RP) receives at the end of an authentication
 flow as an assertion that the end-user was authenticated. The ID Token is
 audience-restricted to the RP that requested it (via the `aud` claim) and
 typically carries a rich set of identity claims describing the end-user.
@@ -114,9 +61,9 @@ forwarding the original ID Token. This practice has two significant problems:
    claims to the recipient, regardless of whether the recipient needs, or is
    authorized to receive, them.
 
-{{OpenID.KeyBinding}} strengthens the ID Token by binding it to a
-proof-of-possession key (a `cnf` claim {{RFC7519}}), transforming it from a
-bearer token into a holder-of-key token using DPoP {{RFC9449}}. That
+[@!OpenID.KeyBinding] strengthens the ID Token by binding it to a
+proof-of-possession key (a `cnf` claim [@!RFC7519]), transforming it from a
+bearer token into a holder-of-key token using DPoP [@!RFC9449]. That
 specification is oriented toward first-party use, where every component that
 requests or receives the ID Token belongs to the same organization; the
 audience is effectively that one organization, and sharing the key-bound ID
@@ -130,7 +77,7 @@ described above.
 This document defines the **OpenID Authentication Token** (OAT) and the
 **OpenID Authentication Token Protocol** (OATP) to address these problems. An
 OAT is minted by the OpenID Provider (OP) through an OAuth 2.0 Token Exchange
-{{RFC8693}} in which the source ID Token is presented as the subject token. The
+[@!RFC8693] in which the source ID Token is presented as the subject token. The
 resulting OAT:
 
 * is signed by the OP using the same signing keys used for its ID Tokens, so
@@ -146,16 +93,21 @@ resulting OAT:
   minimizing disclosure.
 
 The OAT thereby provides an equivalent, key-bound mechanism to
-{{OpenID.KeyBinding}} for sharing an authentication assertion, while retaining
+[@!OpenID.KeyBinding] for sharing an authentication assertion, while retaining
 clear audience guidance and preventing the over-sharing of claims.
 
-# Conventions and Definitions
+## Requirements Notation and Conventions
 
-{::boilerplate bcp14-tagged}
+The keywords "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
+"SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this
+document are to be interpreted as described in BCP 14 [@!RFC2119] [@!RFC8174]
+when, and only when, they appear in all capitals, as shown here.
 
-This document uses the terms defined in OAuth 2.0 {{RFC6749}}, OAuth 2.0 Token
-Exchange {{RFC8693}}, OpenID Connect Core {{OpenID.Core}}, and DPoP
-{{RFC9449}}. In addition, the following terms are defined:
+## Terminology
+
+This document uses the terms defined in OAuth 2.0 [@!RFC6749], OAuth 2.0 Token
+Exchange [@!RFC8693], OpenID Connect Core [@!OpenID.Core], and DPoP
+[@!RFC9449]. In addition, the following terms are defined:
 
 OpenID Authentication Token (OAT):
 : A JWT, signed by the OpenID Provider, that asserts an end-user authentication
@@ -175,13 +127,13 @@ Target Relying Party:
 
 Source ID Token:
 : The ID Token presented as the subject token of the token exchange. It SHOULD
-  be key-bound as defined in {{OpenID.KeyBinding}}.
+  be key-bound as defined in [@!OpenID.KeyBinding].
 
 # OpenID Authentication Token {#oat}
 
-An OpenID Authentication Token is a signed JWT {{RFC7519}} {{RFC7515}}. Its
+An OpenID Authentication Token is a signed JWT [@!RFC7519] [@!RFC7515]. Its
 JOSE header MUST include a `typ` (type) header parameter with the value
-`authn+jwt` (see {{media-type}}), which distinguishes it from an ID Token and
+`authn+jwt` (see (#media-type)), which distinguishes it from an ID Token and
 from an access token and prevents cross-protocol substitution.
 
 ## Claims {#oat-claims}
@@ -194,7 +146,7 @@ An OAT MUST contain the following claims:
 
 `sub`
 : REQUIRED. The subject identifier. Its value is determined by the OP's
-  audience-specific policy (see {{subject-identifier}}).
+  audience-specific policy (see (#subject-identifier)).
 
 `aud`
 : REQUIRED. An array of one or more Target Relying Party identifiers to which
@@ -212,12 +164,12 @@ An OAT MUST contain the following claims:
   of the original authentication event. It MUST NOT be updated by the exchange.
 
 `cnf`
-: REQUIRED. A confirmation claim {{RFC7800}} binding the OAT to a
+: REQUIRED. A confirmation claim [@!RFC7800] binding the OAT to a
   proof-of-possession key. It MUST contain a single `jkt` member whose value is
-  the base64url-encoded JWK SHA-256 Thumbprint {{RFC7638}} of the key that the
+  the base64url-encoded JWK SHA-256 Thumbprint [@!RFC7638] of the key that the
   Requesting Client proved possession of, via a DPoP proof, on the token
   exchange request. The provenance of that key depends on whether the Source ID
-  Token is itself key-bound (see {{key-binding}}).
+  Token is itself key-bound (see (#key-binding)).
 
 An OAT SHOULD contain the following claims when they are present in the Source
 ID Token, preserving the authentication session state:
@@ -245,13 +197,13 @@ An OAT MAY contain the following claims:
   Requesting Client.
 
 `act`
-: An actor claim, as defined in {{Section 4.1 of RFC8693}}, whose `sub` member
+: An actor claim, as defined in Section 4.1 of [@!RFC8693], whose `sub` member
   identifies the Requesting Client that obtained and presents the OAT. Its use
   is RECOMMENDED so that a Target Relying Party can determine which party
   mediated the assertion.
 
 Any additional identity claims are included only as permitted by the OP's
-audience-specific policy (see {{claims-minimization}}).
+audience-specific policy (see (#claims-minimization)).
 
 An OAT MUST NOT be used as an OAuth 2.0 access token, and MUST NOT be accepted
 by a protected resource in place of an access token.
@@ -264,29 +216,29 @@ Token's `sub`) or a pairwise (audience-scoped) subject identifier, according to
 its policy and the registration of each Target Relying Party.
 
 When multiple audiences are requested in a single exchange (see
-{{token-request}}), the OP MUST issue a single OAT containing a single `sub`
+(#token-request)), the OP MUST issue a single OAT containing a single `sub`
 value that is valid for all of the requested audiences. If the OP's policy
 would require different `sub` values for different requested audiences -- for
 example, because the requested audiences belong to different pairwise
 identifier sectors -- the OP MUST NOT issue an OAT and MUST instead return an
-error as described in {{errors}}.
+error as described in (#errors).
 
 ## Key Binding {#key-binding}
 
 An OAT is always key-bound. The binding is established by a single, uniform
-mechanism: the Requesting Client presents a DPoP proof {{RFC9449}} on the token
+mechanism: the Requesting Client presents a DPoP proof [@!RFC9449] on the token
 exchange request, and the OP sets the OAT's `cnf` claim to the JWK Thumbprint
-({{RFC7638}}, expressed as `jkt`) of the key demonstrated by that proof. The
+([@!RFC7638], expressed as `jkt`) of the key demonstrated by that proof. The
 same key is later used by the Requesting Client to demonstrate proof of
 possession when it presents the OAT to a Target Relying Party
-({{consuming-an-oat}}).
+((#consuming-an-oat)).
 
 The provenance of the binding key differs depending on whether the Source ID
 Token is itself key-bound, but the mechanism and the resulting `cnf` form do
 not:
 
 * **Key-bound Source ID Token.** When the Source ID Token is key-bound as
-  defined in {{OpenID.KeyBinding}} and therefore carries a `cnf` claim, the
+  defined in [@!OpenID.KeyBinding] and therefore carries a `cnf` claim, the
   DPoP proof key on the exchange MUST be the key bound by that `cnf` claim. The
   OP MUST verify that the proof key's thumbprint matches the Source ID Token's
   bound key before issuing the OAT. The Requesting Client thus reuses the single
@@ -298,23 +250,23 @@ not:
   own choosing (for example, a stable client key or a fresh per-share key). The
   OP binds the OAT to that key. This lets a Requesting Client obtain a key-bound
   OAT even from a bearer Source ID Token; the associated trust considerations
-  are described in {{security-considerations}}.
+  are described in (#security-considerations).
 
 In both cases the OP normalizes the OAT `cnf` to the `jkt` (thumbprint) form
 regardless of how the Source ID Token expressed its own `cnf`; the full public
 key is carried in the DPoP proof at presentation and need not be embedded in
-the OAT. This keeps the trust model aligned with {{OpenID.KeyBinding}}: the
+the OAT. This keeps the trust model aligned with [@!OpenID.KeyBinding]: the
 Requesting Client is the authenticating component that proves possession, and
 the Target Relying Party is the consuming component that requires such proof.
 
 A Target Relying Party MUST NOT trust an OAT bearing a `cnf` claim without a
 corresponding, successfully verified proof of possession (see
-{{consuming-an-oat}}).
+(#consuming-an-oat)).
 
 # Obtaining an OpenID Authentication Token
 
 An OpenID Authentication Token is obtained by an OAuth 2.0 Token Exchange
-{{RFC8693}} at the OP's token endpoint.
+[@!RFC8693] at the OP's token endpoint.
 
 ## Token Request {#token-request}
 
@@ -333,41 +285,41 @@ parameters:
 
 `requested_token_type`
 : REQUIRED. MUST be `urn:openid:params:token-type:authn-token`
-  ({{iana-token-type}}).
+  ((#iana-token-type)).
 
 `audience`
 : REQUIRED. One or more identifiers of the Target Relying Parties for which the
   OAT is requested. Multiple audiences MAY be requested by including the
   `audience` parameter multiple times, subject to the constraint in
-  {{subject-identifier}}.
+  (#subject-identifier).
 
 `resource`
-: OPTIONAL. One or more absolute URIs, as defined in {{Section 2.1 of RFC8693}},
+: OPTIONAL. One or more absolute URIs, as defined in Section 2.1 of [@!RFC8693],
   further indicating the target service(s) at which the OAT is intended to be
   used.
 
 `scope`
 : OPTIONAL. The requested scope. Used, together with the `claims` parameter, by
   the Requesting Client to indicate the identity claims it wishes the OAT to
-  contain (see {{claims-minimization}}).
+  contain (see (#claims-minimization)).
 
 `claims`
-: OPTIONAL. A JSON object, as defined in Section 5.5 of {{OpenID.Core}},
+: OPTIONAL. A JSON object, as defined in Section 5.5 of [@!OpenID.Core],
   requesting specific claims to be included in the OAT. The OP remains
   authoritative over which claims are released.
 
-The Requesting Client MUST include a DPoP proof JWT, as defined in {{Section 4
-of RFC9449}}, in the `DPoP` header field of the token request. The OAT is bound
-to the key demonstrated by this proof ({{key-binding}}). When the Source ID
+The Requesting Client MUST include a DPoP proof JWT, as defined in Section 4 of
+[@!RFC9449], in the `DPoP` header field of the token request. The OAT is bound
+to the key demonstrated by this proof ((#key-binding)). When the Source ID
 Token is key-bound, the proof MUST be made with the key bound by the Source ID
 Token's `cnf` claim; otherwise the Requesting Client MAY use a key of its own
 choosing. The OP MUST verify the DPoP proof as described in
-{{token-endpoint-processing}}.
+(#token-endpoint-processing).
 
 The following is a non-normative example of a token request (line breaks and
 indentation within the body are for display purposes only):
 
-~~~ http
+```http
 POST /token HTTP/1.1
 Host: op.example.com
 Content-Type: application/x-www-form-urlencoded
@@ -382,58 +334,58 @@ grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange
     urn%3Aopenid%3Aparams%3Atoken-type%3Aauthn-token
 &audience=https%3A%2F%2Frp-b.example.org
 &scope=openid
-~~~
+```
 
 ## Token Endpoint Processing {#token-endpoint-processing}
 
 Upon receiving a token exchange request as defined above, the OP MUST, in
 addition to its normal client authentication and token exchange processing:
 
-1. Validate the Source ID Token per Section 3.1.3.7 of {{OpenID.Core}},
+1. Validate the Source ID Token per Section 3.1.3.7 of [@!OpenID.Core],
    including its signature, issuer, expiration, and integrity. The `aud` of the
    Source ID Token identifies the Requesting Client's original client
    registration; the OP MUST confirm that the authenticated Requesting Client
    is authorized to exchange that ID Token.
 
-2. Verify the DPoP proof in the `DPoP` header field per {{Section 5 of
-   RFC9449}}. If the DPoP proof is missing or fails this verification, the OP
+2. Verify the DPoP proof in the `DPoP` header field per Section 5 of
+   [@!RFC9449]. If the DPoP proof is missing or fails this verification, the OP
    MUST reject the request with an `invalid_dpop_proof` error.
 
 3. If the Source ID Token contains a `cnf` claim, additionally confirm that the
-   JWK Thumbprint {{RFC7638}} of the proof's key equals the thumbprint of the
+   JWK Thumbprint [@!RFC7638] of the proof's key equals the thumbprint of the
    key bound by that `cnf` claim. If the proof is valid but its key does not
    match, the OP MUST reject the request with an `invalid_key_binding` error
-   ({{errors}}).
+   ((#errors)).
 
 4. Determine, for each requested `audience` (and any `resource`), whether the
    Requesting Client is authorized to obtain an OAT for that Target Relying
    Party. If any requested audience is not permitted, the OP MUST return an
    `invalid_target` error.
 
-5. Determine the `sub` value per {{subject-identifier}}. If a single `sub`
+5. Determine the `sub` value per (#subject-identifier). If a single `sub`
    value cannot satisfy all requested audiences, return an `invalid_target`
    error.
 
-6. Determine the set of identity claims to include per {{claims-minimization}}.
+6. Determine the set of identity claims to include per (#claims-minimization).
 
 7. Mint the OAT, copying `iss`, `auth_time`, and (when present) `sid`,
    `acr`, and `amr` from the Source ID Token, setting `aud` to the requested
    audience(s), setting `cnf` to `{ "jkt": <thumbprint of the DPoP proof key> }`
-   ({{key-binding}}), and signing it with the OP's signing key.
+   ((#key-binding)), and signing it with the OP's signing key.
 
 ## Token Response
 
-The response is an OAuth 2.0 Token Exchange response as defined in {{Section 2.2
-of RFC8693}}. The OAT is returned in the `access_token` response parameter (as
+The response is an OAuth 2.0 Token Exchange response as defined in Section 2.2
+of [@!RFC8693]. The OAT is returned in the `access_token` response parameter (as
 required by that specification for the issued token), and the
 `issued_token_type` parameter MUST be `urn:openid:params:token-type:authn-token`.
 
 Because the OAT is not an OAuth 2.0 access token, the `token_type` response
-parameter MUST be `N_A` as described in {{Section 2.2.1 of RFC8693}}.
+parameter MUST be `N_A` as described in Section 2.2.1 of [@!RFC8693].
 
 The following is a non-normative example response:
 
-~~~ http
+```http
 HTTP/1.1 200 OK
 Content-Type: application/json
 Cache-Control: no-store
@@ -444,13 +396,13 @@ Cache-Control: no-store
   "token_type": "N_A",
   "expires_in": 300
 }
-~~~
+```
 
 The following is the non-normative, decoded payload of the OAT from the
 response above. The `cnf` claim carries the `jkt` thumbprint of the key the
 Requesting Client proved possession of on the exchange request.
 
-~~~ json
+```json
 {
   "iss": "https://op.example.com",
   "sub": "Z5O3upPC88QrAjx00dis",
@@ -467,7 +419,7 @@ Requesting Client proved possession of on the exchange request.
     "jkt": "0ZcOCORZNYy-DWpqq30jZyJGHTN0d2HglBV3uiguA4I"
   }
 }
-~~~
+```
 
 ## Claims Minimization {#claims-minimization}
 
@@ -478,7 +430,7 @@ policy and MAY remove any requested claim that the applicable Target Relying
 Party is not authorized to receive.
 
 To prevent over-sharing, an OP SHOULD default to releasing only the
-authentication and session claims defined in {{oat-claims}} (namely `iss`,
+authentication and session claims defined in (#oat-claims) (namely `iss`,
 `sub`, `aud`, `exp`, `iat`, `auth_time`, and, when present, `sid`,
 `acr`, `amr`, and `cnf`), including additional identity claims only when they
 are both requested and permitted by policy. An OAT MUST NOT contain any claim
@@ -487,17 +439,17 @@ in the `aud` claim.
 
 ## Error Responses {#errors}
 
-Errors are returned as defined in {{Section 2.2.2 of RFC8693}} and {{Section
-5.2 of RFC6749}}. In addition to the error codes defined there, this document
+Errors are returned as defined in Section 2.2.2 of [@!RFC8693] and Section
+5.2 of [@!RFC6749]. In addition to the error codes defined there, this document
 relies on the following:
 
 `invalid_target`
 : The requested audience or resource is unknown, is not permitted for the
   Requesting Client, or cannot be satisfied by a single subject identifier
-  across all requested audiences (see {{subject-identifier}}).
+  across all requested audiences (see (#subject-identifier)).
 
 `invalid_dpop_proof`
-: As defined in {{Section 7 of RFC9449}}; returned when the required DPoP proof
+: As defined in Section 7 of [@!RFC9449]; returned when the required DPoP proof
   is missing or is not a valid DPoP proof (for example, a malformed proof, an
   invalid signature, a stale `iat`, or a replayed `jti`). This code does not
   cover the case in which a valid proof is made with the wrong key; see
@@ -506,24 +458,24 @@ relies on the following:
 `invalid_key_binding`
 : The DPoP proof is itself valid, but the Source ID Token is key-bound and the
   JWK Thumbprint of the proof key does not match the key bound by the Source ID
-  Token's `cnf` claim ({{token-endpoint-processing}}). This is a non-retryable
+  Token's `cnf` claim ((#token-endpoint-processing)). This is a non-retryable
   condition: presenting the same request with a freshly generated proof over
   the same key will not succeed. This code is registered by this document
-  ({{iana-error}}).
+  ((#iana-error)).
 
 # Consuming an OpenID Authentication Token {#consuming-an-oat}
 
 The mechanism by which the Requesting Client conveys the OAT to a Target
 Relying Party is out of scope of this document, mirroring
-{{OpenID.KeyBinding}}. Regardless of the transport, the OAT MUST be presented
+[@!OpenID.KeyBinding]. Regardless of the transport, the OAT MUST be presented
 together with a proof of possession of the key identified by its `cnf` claim; a
-DPoP proof {{RFC9449}} is RECOMMENDED for this purpose. The Requesting Client is
+DPoP proof [@!RFC9449] is RECOMMENDED for this purpose. The Requesting Client is
 the party that demonstrates this proof of possession, using the same key it
-proved possession of on the token exchange request ({{key-binding}}).
+proved possession of on the token exchange request ((#key-binding)).
 
 A Target Relying Party consuming an OAT MUST:
 
-1. Validate the OAT as a JWT {{RFC7519}} {{RFC7515}}: verify the signature
+1. Validate the OAT as a JWT [@!RFC7519] [@!RFC7515]: verify the signature
    using the OP's published signing keys, and reject the token if the JOSE
    header `typ` is not `authn+jwt`.
 
@@ -543,7 +495,7 @@ A Target Relying Party consuming an OAT MUST:
 # OpenID Provider Metadata
 
 An OP that supports this specification SHOULD advertise the fact in its
-metadata document {{OpenID.Discovery}} {{RFC8414}} using the following:
+metadata document [@?OpenID.Discovery] [@?RFC8414] using the following:
 
 `authn_token_endpoint`
 : OPTIONAL. The URL of the token endpoint at which OpenID Authentication Tokens
@@ -557,7 +509,7 @@ An OP that supports this specification MUST include
 `urn:openid:params:token-type:authn-token` in the token types it supports for
 the `requested_token_type` parameter, and SHOULD indicate its support for
 token exchange and DPoP through the corresponding metadata parameters defined
-in {{RFC8693}} and {{RFC9449}}.
+in [@!RFC8693] and [@!RFC9449].
 
 # Security Considerations {#security-considerations}
 
@@ -569,7 +521,7 @@ acts as the authenticating component that proves possession; the Target Relying
 Party relies on that proof rather than performing proof of possession itself.
 Deployments MUST ensure that the Requesting Client's private key is protected
 commensurate with the sensitivity of the authentication assertions it can mint
-OATs for. As recommended by {{OpenID.KeyBinding}}, a distinct key pair per
+OATs for. As recommended by [@!OpenID.KeyBinding], a distinct key pair per
 Requesting Client instance SHOULD be used to avoid token confusion; a
 Requesting Client MAY additionally use a fresh per-share key when binding an OAT
 from a bearer Source ID Token.
@@ -598,8 +550,8 @@ The OAT's `aud` claim names the Target Relying Party rather than the Requesting
 Client, giving a conforming Target Relying Party a clear basis to accept the
 token. The distinct `typ` value `authn+jwt` prevents an OAT from being
 substituted for an ID Token, an access token, or a DPoP-bound ID Token
-({{OpenID.KeyBinding}}). Target Relying Parties MUST strictly enforce the
-`aud`, `iss`, and `typ` checks in {{consuming-an-oat}}.
+([@!OpenID.KeyBinding]). Target Relying Parties MUST strictly enforce the
+`aud`, `iss`, and `typ` checks in (#consuming-an-oat).
 
 ## Claims Minimization and Correlation
 
@@ -607,7 +559,7 @@ By defaulting to authentication and session claims and applying
 audience-specific policy, the OAT limits disclosure of identity claims to what
 each Target Relying Party is authorized to receive. Where cross-RP correlation
 is a concern, OPs SHOULD issue pairwise subject identifiers per
-{{subject-identifier}}. Because a single OAT carries a single `sub` value,
+(#subject-identifier). Because a single OAT carries a single `sub` value,
 naming multiple audiences with incompatible pairwise sectors is rejected rather
 than silently collapsing them to a shared identifier.
 
@@ -631,8 +583,8 @@ The token type identifier `urn:openid:params:token-type:authn-token`, used as
 the value of the `requested_token_type` and `issued_token_type` parameters,
 resides in the `urn:openid:params` URN sub-namespace managed by the OpenID
 Foundation rather than the IANA "OAuth URI" registry. It is defined here
-following the conventions for OAuth token type identifiers in {{Section 4.1 of
-RFC8693}}. This document requests no IANA action for this identifier; the
+following the conventions for OAuth token type identifiers in Section 4.1 of
+[@!RFC8693]. This document requests no IANA action for this identifier; the
 OpenID Foundation is the change controller.
 
 ## Media Type Registration {#media-type}
@@ -657,7 +609,7 @@ Encoding considerations:
 : binary; a JWT is a series of base64url-encoded values with period separators.
 
 Security considerations:
-: See {{Section 11 of RFC7519}} and the Security Considerations of this
+: See Section 11 of [@!RFC7519] and the Security Considerations of this
   document.
 
 Change controller:
@@ -666,7 +618,7 @@ Change controller:
 ## OAuth Extensions Error Registration {#iana-error}
 
 This document requests registration of the following error code in the "OAuth
-Extensions Error Registry" established by {{RFC6749}}.
+Extensions Error Registry" established by [@!RFC6749].
 
 Name:
 : invalid_key_binding
@@ -681,7 +633,7 @@ Change controller:
 : OpenID Foundation
 
 Reference:
-: {{errors}} of this document
+: (#errors) of this document
 
 ## OpenID Provider Metadata Registration
 
@@ -691,11 +643,109 @@ This document requests registration of the metadata parameters
 registries, with this document as the specification document and the OpenID
 Foundation as the change controller.
 
---- back
+{backmatter}
 
-# Acknowledgments
-{:numbered="false"}
+<reference anchor="OpenID.Core" target="https://openid.net/specs/openid-connect-core-1_0.html">
+    <front>
+        <title>OpenID Connect Core 1.0 incorporating errata set 2</title>
+        <author fullname="Nat Sakimura">
+            <organization>NAT.Consulting</organization>
+        </author>
+        <author fullname="John Bradley">
+            <organization>Yubico</organization>
+        </author>
+        <author fullname="Michael B. Jones">
+            <organization>Self-Issued Consulting</organization>
+        </author>
+        <author fullname="Breno de Medeiros">
+            <organization>Google</organization>
+        </author>
+        <author fullname="Chuck Mortimore">
+            <organization>Disney</organization>
+        </author>
+        <date day="15" month="December" year="2023"/>
+    </front>
+</reference>
+
+<reference anchor="OpenID.KeyBinding" target="https://openid.github.io/connect-key-binding/main.html">
+    <front>
+        <title>OpenID Connect Key Binding</title>
+        <author>
+            <organization>OpenID Connect Working Group</organization>
+        </author>
+        <date year="2025"/>
+    </front>
+</reference>
+
+<reference anchor="OpenID.Discovery" target="https://openid.net/specs/openid-connect-discovery-1_0.html">
+    <front>
+        <title>OpenID Connect Discovery 1.0 incorporating errata set 2</title>
+        <author fullname="Nat Sakimura">
+            <organization>NAT.Consulting</organization>
+        </author>
+        <author fullname="John Bradley">
+            <organization>Yubico</organization>
+        </author>
+        <author fullname="Michael B. Jones">
+            <organization>Self-Issued Consulting</organization>
+        </author>
+        <author fullname="Edmund Jay">
+            <organization>Illumila</organization>
+        </author>
+        <date day="15" month="December" year="2023"/>
+    </front>
+</reference>
+
+# Acknowledgements
 
 The author thanks the contributors to OpenID Connect Key Binding
-{{OpenID.KeyBinding}}, on which the key-binding model of this document is based,
-and the authors of OAuth 2.0 Token Exchange {{RFC8693}} and DPoP {{RFC9449}}.
+[@!OpenID.KeyBinding], on which the key-binding model of this document is based,
+and the authors of OAuth 2.0 Token Exchange [@!RFC8693] and DPoP [@!RFC9449].
+
+# Notices
+
+Copyright (c) 2026 The OpenID Foundation.
+
+The OpenID Foundation (OIDF) grants to any Contributor, developer,
+implementer, or other interested party a non-exclusive, royalty free,
+worldwide copyright license to reproduce, prepare derivative works from,
+distribute, perform and display, this Implementers Draft, Final
+Specification, or Final Specification Incorporating Errata Corrections
+solely for the purposes of (i) developing specifications,
+and (ii) implementing Implementers Drafts, Final Specifications,
+and Final Specification Incorporating Errata Corrections based
+on such documents, provided that attribution be made to the OIDF as the
+source of the material, but that such attribution does not indicate an
+endorsement by the OIDF.
+
+The technology described in this specification was made available
+from contributions from various sources, including members of the OpenID
+Foundation and others. Although the OpenID Foundation has taken steps to
+help ensure that the technology is available for distribution, it takes
+no position regarding the validity or scope of any intellectual property
+or other rights that might be claimed to pertain to the implementation
+or use of the technology described in this specification or the extent
+to which any license under such rights might or might not be available;
+neither does it represent that it has made any independent effort to
+identify any such rights. The OpenID Foundation and the contributors to
+this specification make no (and hereby expressly disclaim any)
+warranties (express, implied, or otherwise), including implied
+warranties of merchantability, non-infringement, fitness for a
+particular purpose, or title, related to this specification, and the
+entire risk as to implementing this specification is assumed by the
+implementer. The OpenID Intellectual Property Rights policy
+(found at openid.net) requires
+contributors to offer a patent promise not to assert certain patent
+claims against other contributors and against implementers.
+OpenID invites any interested party to bring to its attention any
+copyrights, patents, patent applications, or other proprietary rights
+that may cover technology that may be required to practice this
+specification.
+
+# Document History
+
+[[ To be removed from the final specification ]]
+
+-00
+
+* Initial version.

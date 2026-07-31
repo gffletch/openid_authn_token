@@ -19,6 +19,7 @@
 Gemfile.lock
 archive.json
 draft-openid-authn-token-protocol.xml
+openid-authn-token-1_0.xml
 package-lock.json
 report.xml
 !requirements.txt
